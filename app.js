@@ -1,0 +1,28 @@
+const express = require('express');
+const cors = require('cors');
+const dotenv = require('dotenv');
+
+// Load env vars
+dotenv.config();
+
+const app = express();
+
+// Body parser
+app.use(express.json());
+
+// Enable CORS
+app.use(cors());
+
+// Route files
+const auth = require('./Routes/auth');
+const drivers = require('./Routes/driver');
+
+// Mount routers
+app.get('/', (req, res) => {
+    res.send('Transport Management System API is running...');
+});
+
+app.use('/api/v1/auth', auth);
+app.use('/api/v1/drivers', drivers);
+
+module.exports = app;
