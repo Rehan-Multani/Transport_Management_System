@@ -31,6 +31,12 @@ exports.login = async (req, res, next) => {
         if (!isMatch) {
             return res.status(401).json({ success: false, error: 'Invalid credentials' });
         }
+
+        // Check if verified (Don't check for admins)
+        if (user.role !== 'admin' && !user.isVerified) {
+            return res.status(403).json({ success: false, error: 'Your account is under review. Please wait for admin approval.' });
+        }
+
         sendTokenResponse(user, 200, res);
     } catch (err) {
         next(err);
