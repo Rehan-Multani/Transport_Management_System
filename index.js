@@ -1,5 +1,5 @@
 const app = require('./app');
-const connectDB = require('./config/db');
+const connectDB = require('./Config/db');
 const nodemailer = require('nodemailer');
 
 // Connect to database
