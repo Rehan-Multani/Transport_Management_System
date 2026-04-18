@@ -19,6 +19,7 @@ app.use('/uploads', express.static('uploads'));
 // Route files
 const auth = require('./Routes/auth');
 const drivers = require('./Routes/driver');
+const trips = require('./Routes/trip');
 
 const errorHandler = require('./Middleware/error');
 
@@ -29,6 +30,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/drivers', drivers);
+app.use('/api/v1/trips', trips);
 
 // Error Handler
 app.use(errorHandler);
