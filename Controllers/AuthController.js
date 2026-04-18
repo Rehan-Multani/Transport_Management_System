@@ -7,19 +7,14 @@ const crypto = require('crypto');
 // @access  Public
 exports.register = async (req, res, next) => {
     try {
-        const { name, email, password, phone, licenseNumber, vehicleNumber, address } = req.body;
+        const userData = { ...req.body };
 
-        // Create user (Driver by default based on model)
-        const user = await User.create({
-            name,
-            email,
-            password,
-            phone,
-            licenseNumber,
-            vehicleNumber,
-            address,
-            role: 'driver' // Force role to driver for this endpoint
-        });
+        // If file is uploaded, save its path to license
+        if (req.file) {
+            userData.license = req.file.path;
+        }
+
+        const user = await User.create(userData);
 
         sendTokenResponse(user, 201, res);
     } catch (err) {

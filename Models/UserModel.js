@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: [true, 'Please add a password'],
-        minlength: 6,
+        minlength: 3,
         select: false,
     },
     role: {
@@ -30,13 +30,10 @@ const userSchema = new mongoose.Schema({
         type: String,
     },
     // Driver Specific Fields
-    licenseNumber: {
+    license: {
         type: String,
         unique: true,
         sparse: true, // Allows multiple nulls (for non-drivers)
-    },
-    licenseExpiry: {
-        type: Date,
     },
     vehicleNumber: {
         type: String,

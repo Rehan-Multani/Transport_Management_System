@@ -10,8 +10,9 @@ const {
 const router = express.Router();
 
 const { protect } = require('../Middleware/auth');
+const upload = require('../Middleware/upload');
 
-router.post('/register', register);
+router.post('/register', upload.single('license'), register);
 router.post('/login', login);
 router.get('/me', protect, getMe);
 router.post('/forgotpassword', forgotPassword);

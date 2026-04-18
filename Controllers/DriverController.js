@@ -34,8 +34,14 @@ exports.getDriver = async (req, res, next) => {
 // @access  Private/Admin
 exports.createDriver = async (req, res, next) => {
     try {
-        req.body.role = 'driver';
-        const driver = await User.create(req.body);
+        const driverData = { ...req.body };
+        driverData.role = 'driver';
+
+        if (req.file) {
+            driverData.license = req.file.path;
+        }
+
+        const driver = await User.create(driverData);
         res.status(201).json({ success: true, data: driver });
     } catch (err) {
         res.status(400).json({ success: false, error: err.message });

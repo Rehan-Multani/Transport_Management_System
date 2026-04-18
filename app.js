@@ -13,6 +13,9 @@ app.use(express.json());
 // Enable CORS
 app.use(cors());
 
+// Set static folder
+app.use('/uploads', express.static('uploads'));
+
 // Route files
 const auth = require('./Routes/auth');
 const drivers = require('./Routes/driver');
