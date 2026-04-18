@@ -70,7 +70,7 @@ exports.updateDriver = async (req, res, next) => {
 
         res.status(200).json({ success: true, data: driver });
     } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
+        next(err);
     }
 };
 
@@ -87,6 +87,6 @@ exports.deleteDriver = async (req, res, next) => {
 
         res.status(200).json({ success: true, data: {} });
     } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
+        next(err);
     }
 };
