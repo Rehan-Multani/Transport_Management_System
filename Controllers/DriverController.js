@@ -8,7 +8,7 @@ exports.getDrivers = async (req, res, next) => {
         const drivers = await User.find({ role: 'driver' });
         res.status(200).json({ success: true, count: drivers.length, data: drivers });
     } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
+        next(err);
     }
 };
 
@@ -25,7 +25,7 @@ exports.getDriver = async (req, res, next) => {
 
         res.status(200).json({ success: true, data: driver });
     } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
+        next(err);
     }
 };
 
@@ -44,7 +44,7 @@ exports.createDriver = async (req, res, next) => {
         const driver = await User.create(driverData);
         res.status(201).json({ success: true, data: driver });
     } catch (err) {
-        res.status(400).json({ success: false, error: err.message });
+        next(err);
     }
 };
 
@@ -53,7 +53,13 @@ exports.createDriver = async (req, res, next) => {
 // @access  Private/Admin
 exports.updateDriver = async (req, res, next) => {
     try {
-        const driver = await User.findByIdAndUpdate(req.params.id, req.body, {
+        let driverData = { ...req.body };
+
+        if (req.file) {
+            driverData.license = req.file.path;
+        }
+
+        const driver = await User.findByIdAndUpdate(req.params.id, driverData, {
             new: true,
             runValidators: true
         });

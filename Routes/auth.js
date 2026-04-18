@@ -11,8 +11,9 @@ const router = express.Router();
 
 const { protect } = require('../Middleware/auth');
 const upload = require('../Middleware/upload');
+const { processImage } = require('../Middleware/imageProcessor');
 
-router.post('/register', upload.single('license'), register);
+router.post('/register', upload.single('license'), processImage, register);
 router.post('/login', login);
 router.get('/me', protect, getMe);
 router.post('/forgotpassword', forgotPassword);

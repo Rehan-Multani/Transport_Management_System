@@ -20,6 +20,8 @@ app.use('/uploads', express.static('uploads'));
 const auth = require('./Routes/auth');
 const drivers = require('./Routes/driver');
 
+const errorHandler = require('./Middleware/error');
+
 // Mount routers
 app.get('/', (req, res) => {
     res.send('Transport Management System API is running...');
@@ -27,5 +29,8 @@ app.get('/', (req, res) => {
 
 app.use('/api/v1/auth', auth);
 app.use('/api/v1/drivers', drivers);
+
+// Error Handler
+app.use(errorHandler);
 
 module.exports = app;
