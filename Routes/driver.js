@@ -4,7 +4,8 @@ const {
     getDriver,
     createDriver,
     updateDriver,
-    deleteDriver
+    deleteDriver,
+    updateAvailability
 } = require('../Controllers/DriverController');
 
 const router = express.Router();
@@ -20,6 +21,8 @@ router
     .route('/')
     .get(authorize('admin'), getDrivers)
     .post(authorize('admin'), upload.single('license'), processImage, createDriver);
+
+router.patch('/availability', authorize('driver'), updateAvailability);
 
 router
     .route('/:id')

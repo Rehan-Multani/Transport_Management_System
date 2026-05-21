@@ -90,3 +90,29 @@ exports.deleteDriver = async (req, res, next) => {
         next(err);
     }
 };
+
+// @desc    Update driver availability
+// @route   PATCH /api/v1/drivers/availability
+// @access  Private/Driver
+exports.updateAvailability = async (req, res, next) => {
+    try {
+        const { isAvailable } = req.body;
+
+        if (isAvailable === undefined) {
+            return res.status(400).json({ success: false, error: 'Please provide availability status' });
+        }
+
+        const driver = await User.findByIdAndUpdate(
+            req.user.id,
+            { isAvailable },
+            {
+                new: true,
+                runValidators: true
+            }
+        );
+
+        res.status(200).json({ success: true, data: driver });
+    } catch (err) {
+        next(err);
+    }
+};
