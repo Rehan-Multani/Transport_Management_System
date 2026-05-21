@@ -10,7 +10,13 @@ const {
     getTrip,
     getDriverTrips,
     updateTrip,
-    deleteTrip
+    deleteTrip,
+    getFareConfig,
+    updateFareConfig,
+    getReports,
+    getDashboardData,
+    getMyTrips,
+    getMyEarnings
 } = require('../Controllers/TripController');
 
 const router = express.Router();
@@ -25,6 +31,18 @@ router
     .post(authorize('admin'), createTrip);
 
 router.get('/driver/:driverId', getDriverTrips);
+
+router
+    .route('/fare-config')
+    .get(getFareConfig)
+    .patch(authorize('admin'), updateFareConfig);
+
+router.get('/reports', authorize('admin'), getReports);
+
+router.get('/dashboard', getDashboardData);
+
+router.get('/my-trips', authorize('driver'), getMyTrips);
+router.get('/my-earnings', authorize('driver'), getMyEarnings);
 
 router
     .route('/:id')

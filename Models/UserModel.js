@@ -48,6 +48,10 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    isAvailable: {
+        type: Boolean,
+        default: true,
+    },
     otp: String,
     otpExpire: Date,
     resetPasswordToken: String,
