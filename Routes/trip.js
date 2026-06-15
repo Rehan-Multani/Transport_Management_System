@@ -48,9 +48,9 @@ router
     .route('/:id')
     .get(getTrip)
     .put(authorize('admin'), updateTrip)
-    .delete(authorize('admin'), deleteTrip)
-    .patch(authorize('admin', 'driver'), cancelTrip);
+    .delete(authorize('admin'), deleteTrip);
 
+router.patch('/:id/cancel', authorize('admin', 'driver'), cancelTrip);
 router.patch('/:id/assign', authorize('admin'), assignDriver);
 router.patch('/:id/accept', authorize('driver'), acceptTrip);
 router.patch('/:id/start', authorize('driver'), startTrip);
