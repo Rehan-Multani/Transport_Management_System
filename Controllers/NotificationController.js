@@ -1,5 +1,6 @@
 const Notification = require('../Models/NotificationModel');
 const User = require('../Models/UserModel');
+const { sendPushNotification, sendMulticastNotification } = require('../utils/firebase');
 
 // @desc    Send notification (Create)
 // @route   POST /api/v1/notifications
@@ -28,6 +29,25 @@ exports.sendNotification = async (req, res, next) => {
         };
 
         const notification = await Notification.create(notificationData);
+
+        // Push Notification Logic
+        if (targetType === 'SELECTED' && recipientDriverId) {
+            const driver = await User.findById(recipientDriverId);
+            if (driver && driver.fcmToken) {
+                await sendPushNotification(driver.fcmToken, title, description, {
+                    notificationId: notification._id.toString()
+                });
+            }
+        } else if (targetType === 'ALL') {
+            const drivers = await User.find({ role: 'driver', fcmToken: { $exists: true, $ne: null } });
+            const tokens = drivers.map(d => d.fcmToken).filter(t => t);
+            if (tokens.length > 0) {
+                await sendMulticastNotification(tokens, title, description, {
+                    notificationId: notification._id.toString()
+                });
+            }
+        }
+
         res.status(201).json({ success: true, data: notification });
     } catch (err) {
         next(err);

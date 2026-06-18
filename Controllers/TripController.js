@@ -1,6 +1,8 @@
 const Trip = require('../Models/TripModel');
 const User = require('../Models/UserModel');
 const FareConfig = require('../Models/FareConfigModel');
+const Notification = require('../Models/NotificationModel');
+const { sendPushNotification, sendMulticastNotification } = require('../utils/firebase');
 
 // Helper to get or create default fare configuration
 const getOrCreateFareConfig = async () => {
@@ -55,6 +57,24 @@ exports.assignDriver = async (req, res, next) => {
             status: 'ASSIGNED'
         }, { new: true });
 
+        // Automated Notification for Assignment
+        const title = "New Trip Assigned";
+        const description = `You have been assigned a new trip. Distance: ${distance} km.`;
+        
+        await Notification.create({
+            title,
+            description,
+            targetType: 'SELECTED',
+            recipientDriverId: driverId,
+            createdBy: req.user.id
+        });
+
+        if (driver.fcmToken) {
+            await sendPushNotification(driver.fcmToken, title, description, {
+                tripId: trip._id.toString()
+            });
+        }
+
         res.status(200).json({ success: true, data: trip });
     } catch (err) {
         next(err);
@@ -74,6 +94,25 @@ exports.acceptTrip = async (req, res, next) => {
 
         trip.status = 'ACCEPTED';
         await trip.save();
+
+        // Notify Admins
+        const title = "Trip Accepted";
+        const description = `Trip ID ${trip._id} was accepted by the driver.`;
+        
+        await Notification.create({
+            title,
+            description,
+            targetType: 'ALL',
+            createdBy: req.user.id
+        });
+
+        const admins = await User.find({ role: 'admin', fcmToken: { $exists: true, $ne: null } });
+        const tokens = admins.map(a => a.fcmToken).filter(t => t);
+        if (tokens.length > 0) {
+            await sendMulticastNotification(tokens, title, description, {
+                tripId: trip._id.toString()
+            });
+        }
 
         res.status(200).json({ success: true, data: trip });
     } catch (err) {
@@ -95,6 +134,25 @@ exports.startTrip = async (req, res, next) => {
         trip.status = 'EN_ROUTE';
         trip.startTime = Date.now();
         await trip.save();
+
+        // Notify Admins
+        const title = "Trip Started";
+        const description = `Trip ID ${trip._id} has been started by the driver.`;
+        
+        await Notification.create({
+            title,
+            description,
+            targetType: 'ALL',
+            createdBy: req.user.id
+        });
+
+        const admins = await User.find({ role: 'admin', fcmToken: { $exists: true, $ne: null } });
+        const tokens = admins.map(a => a.fcmToken).filter(t => t);
+        if (tokens.length > 0) {
+            await sendMulticastNotification(tokens, title, description, {
+                tripId: trip._id.toString()
+            });
+        }
 
         res.status(200).json({ success: true, data: trip });
     } catch (err) {
@@ -132,6 +190,25 @@ exports.completeTrip = async (req, res, next) => {
         trip.driverEarning = driverEarning;
 
         await trip.save();
+
+        // Notify Admins
+        const title = "Trip Completed";
+        const description = `Trip ID ${trip._id} has been completed. Fare: ${fare}`;
+        
+        await Notification.create({
+            title,
+            description,
+            targetType: 'ALL',
+            createdBy: req.user.id
+        });
+
+        const admins = await User.find({ role: 'admin', fcmToken: { $exists: true, $ne: null } });
+        const tokens = admins.map(a => a.fcmToken).filter(t => t);
+        if (tokens.length > 0) {
+            await sendMulticastNotification(tokens, title, description, {
+                tripId: trip._id.toString()
+            });
+        }
 
         res.status(200).json({ success: true, data: trip });
     } catch (err) {
@@ -182,7 +259,45 @@ exports.cancelTrip = async (req, res, next) => {
         const trip = await Trip.findByIdAndUpdate(req.params.id, {
             status: 'CANCELLED',
             cancellationReason: reason
-        }, { new: true });
+        }, { new: true }).populate('driverId');
+
+        // Automated Notification for Cancellation
+        if (req.user.role === 'admin' && trip.driverId) {
+            const title = "Trip Cancelled";
+            const description = `Your assigned trip has been cancelled by the admin. Reason: ${reason || 'N/A'}`;
+            
+            await Notification.create({
+                title,
+                description,
+                targetType: 'SELECTED',
+                recipientDriverId: trip.driverId._id,
+                createdBy: req.user.id
+            });
+
+            if (trip.driverId.fcmToken) {
+                await sendPushNotification(trip.driverId.fcmToken, title, description, {
+                    tripId: trip._id.toString()
+                });
+            }
+        } else if (req.user.role === 'driver') {
+            const title = "Trip Cancelled by Driver";
+            const description = `Trip ID ${trip._id} was cancelled by the driver. Reason: ${reason || 'N/A'}`;
+            
+            await Notification.create({
+                title,
+                description,
+                targetType: 'ALL',
+                createdBy: req.user.id
+            });
+
+            const admins = await User.find({ role: 'admin', fcmToken: { $exists: true, $ne: null } });
+            const tokens = admins.map(a => a.fcmToken).filter(t => t);
+            if (tokens.length > 0) {
+                await sendMulticastNotification(tokens, title, description, {
+                    tripId: trip._id.toString()
+                });
+            }
+        }
 
         res.status(200).json({ success: true, data: trip });
     } catch (err) {
