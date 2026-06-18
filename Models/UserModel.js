@@ -52,6 +52,9 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: true,
     },
+    fcmToken: {
+        type: String,
+    },
     otp: String,
     otpExpire: Date,
     resetPasswordToken: String,

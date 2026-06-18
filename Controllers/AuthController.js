@@ -196,6 +196,28 @@ exports.updatePassword = async (req, res, next) => {
         next(err);
     }
 };
+// @desc    Update FCM Token for Push Notifications
+// @route   PUT /api/v1/auth/fcm-token
+// @access  Private
+exports.updateFcmToken = async (req, res, next) => {
+    try {
+        const { fcmToken } = req.body;
+
+        if (!fcmToken) {
+            return res.status(400).json({ success: false, error: 'Please provide an FCM token' });
+        }
+
+        const user = await User.findByIdAndUpdate(
+            req.user.id,
+            { fcmToken },
+            { new: true, runValidators: true }
+        );
+
+        res.status(200).json({ success: true, data: 'FCM token updated successfully' });
+    } catch (err) {
+        next(err);
+    }
+};
 
 const sendTokenResponse = (user, statusCode, res) => {
     const token = user.getSignedJwtToken();
